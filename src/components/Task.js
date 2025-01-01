@@ -12,6 +12,12 @@ const TaskPage = () => {
     step3: false,
   });
 
+  const [stepConfirmations, setStepConfirmations] = useState({
+    step1: false,
+    step2: false,
+    step3: false,
+  });
+
   // Modal Controls
   const handleOpenModal = () => setIsModalOpen(true);
 
@@ -23,6 +29,7 @@ const TaskPage = () => {
   const resetSteps = () => {
     setCurrentStep(1);
     setCompletedSteps({ step1: false, step2: false, step3: false });
+    setStepConfirmations({ step1: false, step2: false, step3: false });
     setExternalAddress("");
   };
 
@@ -31,6 +38,11 @@ const TaskPage = () => {
 
   // Step Navigation
   const handleNextStep = () => {
+    if (currentStep <= 3 && !stepConfirmations[`step${currentStep}`]) {
+      alert(`Please confirm you have completed Step ${currentStep}.`);
+      return;
+    }
+
     if (currentStep === 4 && !isWalletAddressValid(externalAddress)) {
       alert("Please enter a valid wallet address. Only alphabetic characters are allowed.");
       return;
@@ -64,6 +76,14 @@ const TaskPage = () => {
     }
   };
 
+  // Handle confirmation checkbox
+  const handleConfirmationChange = (step) => {
+    setStepConfirmations((prev) => ({
+      ...prev,
+      [step]: !prev[step],
+    }));
+  };
+
   // UI Elements
   const renderStepContent = () => {
     const stepLinks = [
@@ -74,7 +94,7 @@ const TaskPage = () => {
 
     if (currentStep <= 3) {
       return (
-        <>
+        <div>
           <a
             href={stepLinks[currentStep - 1].url}
             target="_blank"
@@ -84,7 +104,18 @@ const TaskPage = () => {
             {stepLinks[currentStep - 1].label}
           </a>
           <p>Click the link to complete Step {currentStep}.</p>
-        </>
+          <div>
+            <input
+              type="checkbox"
+              id={`step${currentStep}Confirmation`}
+              checked={stepConfirmations[`step${currentStep}`]}
+              onChange={() => handleConfirmationChange(`step${currentStep}`)}
+            />
+            <label htmlFor={`step${currentStep}Confirmation`}>
+              I confirm I have completed Step {currentStep}.
+            </label>
+          </div>
+        </div>
       );
     }
 
