@@ -12,7 +12,7 @@ const TaskPage = () => {
     step3: false,
   });
 
-  const [stepConfirmations, setStepConfirmations] = useState({
+  const [linkClicked, setLinkClicked] = useState({
     step1: false,
     step2: false,
     step3: false,
@@ -29,7 +29,7 @@ const TaskPage = () => {
   const resetSteps = () => {
     setCurrentStep(1);
     setCompletedSteps({ step1: false, step2: false, step3: false });
-    setStepConfirmations({ step1: false, step2: false, step3: false });
+    setLinkClicked({ step1: false, step2: false, step3: false });
     setExternalAddress("");
   };
 
@@ -38,8 +38,8 @@ const TaskPage = () => {
 
   // Step Navigation
   const handleNextStep = () => {
-    if (currentStep <= 3 && !stepConfirmations[`step${currentStep}`]) {
-      alert(`Please confirm you have completed Step ${currentStep}.`);
+    if (currentStep <= 3 && !linkClicked[`step${currentStep}`]) {
+      alert(`Please click the link for Step ${currentStep} before proceeding.`);
       return;
     }
 
@@ -76,11 +76,11 @@ const TaskPage = () => {
     }
   };
 
-  // Handle confirmation checkbox
-  const handleConfirmationChange = (step) => {
-    setStepConfirmations((prev) => ({
+  // Handle Link Click
+  const handleLinkClick = (step) => {
+    setLinkClicked((prev) => ({
       ...prev,
-      [step]: !prev[step],
+      [step]: true,
     }));
   };
 
@@ -100,21 +100,16 @@ const TaskPage = () => {
             target="_blank"
             rel="noopener noreferrer"
             style={{ color: "#0070f3", textDecoration: "none" }}
+            onClick={() => handleLinkClick(`step${currentStep}`)}
           >
             {stepLinks[currentStep - 1].label}
           </a>
           <p>Click the link to complete Step {currentStep}.</p>
-          <div>
-            <input
-              type="checkbox"
-              id={`step${currentStep}Confirmation`}
-              checked={stepConfirmations[`step${currentStep}`]}
-              onChange={() => handleConfirmationChange(`step${currentStep}`)}
-            />
-            <label htmlFor={`step${currentStep}Confirmation`}>
-              I confirm I have completed Step {currentStep}.
-            </label>
-          </div>
+          {linkClicked[`step${currentStep}`] ? (
+            <p style={{ color: "green" }}>Link clicked! You can proceed to the next step.</p>
+          ) : (
+            <p style={{ color: "red" }}>Please click the link to proceed.</p>
+          )}
         </div>
       );
     }
