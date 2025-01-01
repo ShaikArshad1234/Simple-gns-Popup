@@ -1,23 +1,112 @@
-"use client"; 
+"use client";
 
 import { useState } from "react";
 
 const TaskPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [externalAddress, setExternalAddress] = useState("");
+  const [completedSteps, setCompletedSteps] = useState({
+    step1: false,
+    step2: false,
+    step3: false,
+  });
 
-  const handleOpenModal = () => {
-    setIsModalOpen(true);
-  };
+  // Modal Controls
+  const handleOpenModal = () => setIsModalOpen(true);
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    resetSteps();
   };
 
-  const [externalAddress, setExternalAddress] = useState("");
+  const resetSteps = () => {
+    setCurrentStep(1);
+    setCompletedSteps({ step1: false, step2: false, step3: false });
+    setExternalAddress("");
+  };
 
+  // Wallet Validation
+  const isWalletAddressValid = (address) => /^[a-zA-Z]+$/.test(address.trim());
+
+  // Step Navigation
+  const handleNextStep = () => {
+    if (currentStep === 4 && !isWalletAddressValid(externalAddress)) {
+      alert("Please enter a valid wallet address. Only alphabetic characters are allowed.");
+      return;
+    }
+
+    setCompletedSteps((prev) => ({
+      ...prev,
+      [`step${currentStep}`]: true,
+    }));
+
+    setCurrentStep((prev) => prev + 1);
+  };
+
+  const handlePreviousStep = () => {
+    setCurrentStep((prev) => prev - 1);
+  };
+
+  // Form Submission
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert(`Submitted Address: ${externalAddress}`);
+
+    if (Object.values(completedSteps).every((step) => step)) {
+      if (isWalletAddressValid(externalAddress)) {
+        alert(`Submitted Wallet Address: ${externalAddress}`);
+        handleCloseModal();
+      } else {
+        alert("Invalid wallet address. Please try again.");
+      }
+    } else {
+      alert("Please complete all steps before submitting.");
+    }
+  };
+
+  // UI Elements
+  const renderStepContent = () => {
+    const stepLinks = [
+      { label: "EternalKoalas", url: "https://x.com/EternalKoalas" },
+      { label: "Yousefeth", url: "https://x.com/yousefeth" },
+      { label: "Madushanka", url: "https://x.com/mr_madushanka" },
+    ];
+
+    if (currentStep <= 3) {
+      return (
+        <>
+          <a
+            href={stepLinks[currentStep - 1].url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "#0070f3", textDecoration: "none" }}
+          >
+            {stepLinks[currentStep - 1].label}
+          </a>
+          <p>Click the link to complete Step {currentStep}.</p>
+        </>
+      );
+    }
+
+    return (
+      <div>
+        <label htmlFor="externalAddress">Enter Wallet Address:</label>
+        <input
+          type="text"
+          id="externalAddress"
+          value={externalAddress}
+          onChange={(e) => setExternalAddress(e.target.value)}
+          placeholder="Type here..."
+          style={{
+            width: "100%",
+            padding: "8px",
+            marginTop: "5px",
+            border: "1px solid #ccc",
+            borderRadius: "4px",
+          }}
+        />
+      </div>
+    );
   };
 
   return (
@@ -63,72 +152,64 @@ const TaskPage = () => {
               textAlign: "left",
             }}
           >
-            <h2>Links</h2>
-            <ul>
-              <li>
-                <a
-                  href="https://x.com/EternalKoalas"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: "#0070f3", textDecoration: "none" }}
-                >
-                  EternalKoalas
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://x.com/yousefeth"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: "#0070f3", textDecoration: "none" }}
-                >
-                  Yousefeth
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://x.com/mr_madushanka"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: "#0070f3", textDecoration: "none" }}
-                >
-                  Madushanka
-                </a>
-              </li>
-            </ul>
-            <form onSubmit={handleSubmit}>
-              <div style={{ marginTop: "20px" }}>
-                <label htmlFor="externalAddress">Enter Wallet Address:</label>
-                <input
-                  type="text"
-                  id="externalAddress"
-                  value={externalAddress}
-                  onChange={(e) => setExternalAddress(e.target.value)}
-                  placeholder="Type here..."
+            <h2>Step {currentStep}</h2>
+            {renderStepContent()}
+
+            <div style={{ marginTop: "20px" }}>
+              {currentStep > 1 && (
+                <button
+                  onClick={handlePreviousStep}
                   style={{
-                    width: "100%",
-                    padding: "8px",
-                    marginTop: "5px",
-                    border: "1px solid #ccc",
+                    marginRight: "10px",
+                    padding: "10px 20px",
+                    backgroundColor: "#ccc",
+                    border: "none",
                     borderRadius: "4px",
+                    cursor: "pointer",
                   }}
-                />
-              </div>
-              <button
-                type="submit"
-                style={{
-                  marginTop: "15px",
-                  padding: "10px 20px",
-                  backgroundColor: "#0070f3",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-              >
-                Submit
-              </button>
-            </form>
+                >
+                  Back
+                </button>
+              )}
+              {currentStep < 4 && (
+                <button
+                  onClick={handleNextStep}
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor: "#0070f3",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Next
+                </button>
+              )}
+              {currentStep === 4 && (
+                <button
+                  onClick={handleSubmit}
+                  style={{
+                    padding: "10px 20px",
+                    backgroundColor: Object.values(completedSteps).every(
+                      (step) => step
+                    )
+                      ? "#0070f3"
+                      : "#ccc",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: Object.values(completedSteps).every((step) => step)
+                      ? "pointer"
+                      : "not-allowed",
+                  }}
+                  disabled={!Object.values(completedSteps).every((step) => step)}
+                >
+                  Submit
+                </button>
+              )}
+            </div>
+
             <button
               onClick={handleCloseModal}
               style={{
